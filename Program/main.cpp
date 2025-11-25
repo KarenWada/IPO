@@ -3,30 +3,49 @@
 #include "LocalSearch.h"
 #include "Split.h"
 #include "InstanceCVRPLIB.h"
+
 using namespace std;
 
 int main(int argc, char *argv[])
 {
 	try
 	{
-		// Reading the arguments of the program
+		// Reading the arguments
 		CommandLine commandline(argc, argv);
 
-		// Print all algorithm parameter values
+		// Força 1 veículo (TD-TSP) se não passado por argumento
+		if (commandline.nbVeh == INT_MAX) commandline.nbVeh = 1;
+
 		if (commandline.verbose) print_algorithm_parameters(commandline.ap);
 
-		// Reading the data file and initializing some data structures
 		if (commandline.verbose) std::cout << "----- READING INSTANCE: " << commandline.pathInstance << std::endl;
-		InstanceCVRPLIB cvrp(commandline.pathInstance, commandline.isRoundingInteger);
+		
+		// Usa o novo Parser
+		InstanceCVRPLIB inst(commandline.pathInstance);
 
-		Params params(cvrp.x_coords,cvrp.y_coords,cvrp.dist_mtx,cvrp.service_time,cvrp.demands,
-			          cvrp.vehicleCapacity,cvrp.durationLimit,commandline.nbVeh,cvrp.isDurationConstraint,commandline.verbose,commandline.ap);
+		// Instancia Params com a nova assinatura (que definimos no passo 1)
+		// Note que passamos 'inst.timeCostsTD' como último argumento
+		// Passamos inst.dist_mtx[0] (tempo no intervalo 0) como matriz de distância estática base para heurísticas
+		Params params(
+			inst.x_coords,
+			inst.y_coords,
+			inst.timeCostsTD[0], // Usa intervalo 0 como referência "estática" para cálculos rápidos se necessário
+			inst.service_time,
+			inst.durationLimit,
+			commandline.nbVeh,
+			inst.isDurationConstraint,
+			commandline.verbose,
+			commandline.ap,
+			inst.nbTimeIntervals,
+			inst.intervalLength,
+			inst.timeCostsTD
+		);
 
 		// Running HGS
 		Genetic solver(params);
 		solver.run();
 		
-		// Exporting the best solution
+		// Exporting
 		if (solver.population.getBestFound() != NULL)
 		{
 			if (params.verbose) std::cout << "----- WRITING BEST SOLUTION IN : " << commandline.pathSolution << std::endl;

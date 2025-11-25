@@ -14,11 +14,16 @@ void Genetic::run()
 		crossoverOX(offspring, population.getBinaryTournament(),population.getBinaryTournament());
 
 		/* LOCAL SEARCH */
-		localSearch.run(offspring, params.penaltyCapacity, params.penaltyDuration);
+		// We pass 0.0 for penaltyCapacity since we are solving a TSP (Capacity irrelevant)
+		localSearch.run(offspring, 0.0, params.penaltyDuration);
+		
 		bool isNewBest = population.addIndividual(offspring,true);
+		
+		// Repair logic based only on duration/time feasibility
 		if (!offspring.eval.isFeasible && params.ran()%2 == 0) // Repair half of the solutions in case of infeasibility
 		{
-			localSearch.run(offspring, params.penaltyCapacity*10., params.penaltyDuration*10.);
+			// Increased penalty for duration to force feasibility
+			localSearch.run(offspring, 0.0, params.penaltyDuration*10.);
 			if (offspring.eval.isFeasible) isNewBest = (population.addIndividual(offspring,false) || isNewBest);
 		}
 
@@ -74,7 +79,8 @@ void Genetic::crossoverOX(Individual & result, const Individual & parent1, const
 	}
 
 	// Complete the individual with the Split algorithm
-	split.generalSplit(result, parent1.eval.nbRoutes);
+	// In TD-TSP, this effectively just evaluates the cost of the single route
+	split.generalSplit(result, params.nbVehicles);
 }
 
 Genetic::Genetic(Params & params) : 
@@ -83,4 +89,3 @@ Genetic::Genetic(Params & params) :
 	localSearch(params),
 	population(params,this->split,this->localSearch),
 	offspring(params){}
-

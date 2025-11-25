@@ -3,33 +3,66 @@
 void Individual::evaluateCompleteCost(const Params & params)
 {
 	eval = EvalIndiv();
-	for (int r = 0; r < params.nbVehicles; r++)
+
+	// Como é um TSP (1 veículo), ignoramos a lógica de Split complexa do CVRP.
+	// O Giant Tour (chromT) é a própria rota do único veículo.
+	chromR.clear();
+	chromR.resize(params.nbVehicles); // Deve ser 1
+	chromR[0] = chromT; // Copia a sequência para a estrutura de rotas
+	
+	// Reinicializa predecessores e sucessores
+	for(int i = 0; i <= params.nbClients; i++) {
+		predecessors[i] = 0;
+		successors[i] = 0;
+	}// Verifica se a rota não está vazia
+	if (!chromR[0].empty())
 	{
-		if (!chromR[r].empty())
+		double currentTime = 0.0; // Início do horizonte de planejamento (t0)
+		int previousNode = 0;     // Começa no Depósito
+
+		// Itera sequencialmente sobre a rota para calcular o MakeSpan (Tempo Total)
+		// Isso é mandatório no TD-TSP devido à propriedade de não-aditividade
+		for (int currentNode : chromR[0])
 		{
-			double distance = params.timeCost[0][chromR[r][0]];
-			double load = params.cli[chromR[r][0]].demand;
-			double service = params.cli[chromR[r][0]].serviceDuration;
-			predecessors[chromR[r][0]] = 0;
-			for (int i = 1; i < (int)chromR[r].size(); i++)
-			{
-				distance += params.timeCost[chromR[r][i-1]][chromR[r][i]];
-				load += params.cli[chromR[r][i]].demand;
-				service += params.cli[chromR[r][i]].serviceDuration;
-				predecessors[chromR[r][i]] = chromR[r][i-1];
-				successors[chromR[r][i-1]] = chromR[r][i];
-			}
-			successors[chromR[r][chromR[r].size()-1]] = 0;
-			distance += params.timeCost[chromR[r][chromR[r].size()-1]][0];
-			eval.distance += distance;
-			eval.nbRoutes++;
-			if (load > params.vehicleCapacity) eval.capacityExcess += load - params.vehicleCapacity;
-			if (distance + service > params.durationLimit) eval.durationExcess += distance + service - params.durationLimit;
+			// 1. Custo de viagem (Dependente do tempo de saída de previousNode)
+			double travelTime = params.getTDCost(previousNode, currentNode, currentTime);
+			currentTime += travelTime;
+
+			// 2. Tempo de serviço no cliente
+			currentTime += params.cli[currentNode].serviceDuration;
+
+			// Atualiza estruturas de navegação
+			successors[previousNode] = currentNode;
+			predecessors[currentNode] = previousNode;
+
+			previousNode = currentNode;
+		}
+
+		// Retorno ao depósito
+		double returnTime = params.getTDCost(previousNode, 0, currentTime);
+		currentTime += returnTime;
+		
+		successors[previousNode] = 0;
+		predecessors[0] = previousNode;
+
+		// O "custo" principal agora é o tempo total da rota (Makespan)
+		eval.distance = currentTime; 
+		eval.nbRoutes = 1;
+
+		// Verificação de violação do Horizonte de Planejamento (Duration Constraint)
+		// Assumindo que durationLimit é o tempo máximo permitido (ex: fim do dia)
+		if (params.isDurationConstraint && eval.distance > params.durationLimit)
+		{
+			eval.durationExcess = eval.distance - params.durationLimit;
 		}
 	}
 
-	eval.penalizedCost = eval.distance + eval.capacityExcess*params.penaltyCapacity + eval.durationExcess*params.penaltyDuration;
-	eval.isFeasible = (eval.capacityExcess < MY_EPSILON && eval.durationExcess < MY_EPSILON);
+	// Custo Penalizado (Fitness)
+	// Como não há capacidade, removemos params.penaltyCapacity
+	eval.penalizedCost = eval.distance + eval.durationExcess * params.penaltyDuration;
+	
+	// É viável se não violar o horizonte de tempo (dentro da tolerância epsilon)
+	eval.isFeasible = (eval.durationExcess < MY_EPSILON);
 }
 
 Individual::Individual(Params & params)
@@ -38,9 +71,18 @@ Individual::Individual(Params & params)
 	predecessors = std::vector <int>(params.nbClients + 1);
 	chromR = std::vector < std::vector <int> >(params.nbVehicles);
 	chromT = std::vector <int>(params.nbClients);
+	
+	// Preenche o cromossomo com todos os clientes
 	for (int i = 0; i < params.nbClients; i++) chromT[i] = i + 1;
+	
+	// Embaralha aleatoriamente para gerar solução inicial
 	std::shuffle(chromT.begin(), chromT.end(), params.ran);
-	eval.penalizedCost = 1.e30;	
+	
+	// Inicializa custo com valor alto antes da primeira avaliação
+	eval.penalizedCost = 1.e30; 
+	
+	// Avalia imediatamente para garantir consistência
+	evaluateCompleteCost(params);
 }
 
 Individual::Individual(Params & params, std::string fileName) : Individual(params)
@@ -62,18 +104,24 @@ Individual::Individual(Params & params, std::string fileName) : Individual(param
 			while (ss >> inputCustomer) // Loops as long as there is an integer to read in this route
 			{
 				chromT.push_back(inputCustomer);
-				chromR[r].push_back(inputCustomer);
+				// Nota: chromR será reconstruído corretamente dentro de evaluateCompleteCost
 			}
 			inputFile >> inputString;
 		}
 		if (inputString == "Cost") inputFile >> readCost;
 		else throw std::string("Unexpected token in input solution");
 
-		// Some safety checks and printouts
+		// Verificações de segurança e recálculo
 		evaluateCompleteCost(params);
+		
 		if ((int)chromT.size() != params.nbClients) throw std::string("Input solution does not contain the correct number of clients");
 		if (!eval.isFeasible) throw std::string("Input solution is infeasible");
-		if (eval.penalizedCost != readCost)throw std::string("Input solution has a different cost than announced in the file");
+		
+		// Nota: O custo lido do arquivo pode diferir ligeiramente devido à precisão de ponto flutuante
+		// ou se o arquivo original não considerava a dependência de tempo da mesma forma.
+		if (std::abs(eval.penalizedCost - readCost) > 1.0 && params.verbose) 
+			std::cout << "WARNING: Input solution cost differs from recalculated TD-TSP cost." << std::endl;
+			
 		if (params.verbose) std::cout << "----- INPUT SOLUTION HAS BEEN SUCCESSFULLY READ WITH COST " << eval.penalizedCost << std::endl;
 	}
 	else 

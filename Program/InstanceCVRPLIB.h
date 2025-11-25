@@ -1,27 +1,33 @@
-//
-// Created by chkwon on 3/22/22.
-//
-
 #ifndef INSTANCECVRPLIB_H
 #define INSTANCECVRPLIB_H
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <iostream>
 
 class InstanceCVRPLIB
 {
 public:
+	// Dados Geográficos (Zerados se não fornecidos no TD-TSP)
 	std::vector<double> x_coords;
 	std::vector<double> y_coords;
-	std::vector< std::vector<double> > dist_mtx;
+
+	// Dados TD-TSP
 	std::vector<double> service_time;
-	std::vector<double> demands;
-	double durationLimit = 1.e30;							// Route duration limit
-	double vehicleCapacity = 1.e30;							// Capacity limit
-	bool isDurationConstraint = false;						// Indicates if the problem includes duration constraints
-	int nbClients ;											// Number of clients (excluding the depot)
+	int nbClients;                  // Número de clientes (excluindo depósito)
+	int nbTimeIntervals;            // |H|
+	double intervalLength;          // T
+	
+	// Matriz 3D: [Intervalo][Origem][Destino]
+	std::vector<std::vector<std::vector<double>>> timeCostsTD; 
 
-	InstanceCVRPLIB(std::string pathToInstance, bool isRoundingInteger);
+	// Constraints (Mantidos para compatibilidade, mas Capacity será ignorado)
+	double durationLimit = 1.e30;
+	double vehicleCapacity = 1.e30; 
+	bool isDurationConstraint = false;
+
+	// Construtor
+	InstanceCVRPLIB(std::string pathToInstance);
 };
-
 
 #endif //INSTANCECVRPLIB_H

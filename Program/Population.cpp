@@ -6,12 +6,19 @@ void Population::generatePopulation()
 	for (int i = 0; i < 4*params.ap.mu && (i == 0 || params.ap.timeLimit == 0 || (double)(clock() - params.startTime) / (double)CLOCKS_PER_SEC < params.ap.timeLimit) ; i++)
 	{
 		Individual randomIndiv(params);
-		split.generalSplit(randomIndiv, params.nbVehicles);
-		localSearch.run(randomIndiv, params.penaltyCapacity, params.penaltyDuration);
+		// Split now just evaluates the single route cost
+		split.generalSplit(randomIndiv, params.nbVehicles); 
+		
+		// Run Local Search (Passing 0.0 for capacity penalty as it is irrelevant for TD-TSP)
+		localSearch.run(randomIndiv, 0.0, params.penaltyDuration);
+		
 		addIndividual(randomIndiv, true);
-		if (!randomIndiv.eval.isFeasible && params.ran() % 2 == 0)  // Repair half of the solutions in case of infeasibility
+		
+		// Repair half of the solutions in case of infeasibility (Duration only)
+		if (!randomIndiv.eval.isFeasible && params.ran() % 2 == 0)  
 		{
-			localSearch.run(randomIndiv, params.penaltyCapacity*10., params.penaltyDuration*10.);
+			// Try to repair with higher penalties
+			localSearch.run(randomIndiv, 0.0, params.penaltyDuration * 10.);
 			if (randomIndiv.eval.isFeasible) addIndividual(randomIndiv, false);
 		}
 	}
@@ -21,9 +28,8 @@ bool Population::addIndividual(const Individual & indiv, bool updateFeasible)
 {
 	if (updateFeasible)
 	{
-		listFeasibilityLoad.push_back(indiv.eval.capacityExcess < MY_EPSILON);
+		// Only tracking duration feasibility
 		listFeasibilityDuration.push_back(indiv.eval.durationExcess < MY_EPSILON);
-		listFeasibilityLoad.pop_front();
 		listFeasibilityDuration.pop_front();
 	}
 
@@ -138,12 +144,8 @@ void Population::restart()
 
 void Population::managePenalties()
 {
-	// Setting some bounds [0.1,100000] to the penalty values for safety
-	double fractionFeasibleLoad = (double)std::count(listFeasibilityLoad.begin(), listFeasibilityLoad.end(), true) / (double)listFeasibilityLoad.size();
-	if (fractionFeasibleLoad < params.ap.targetFeasible - 0.05 && params.penaltyCapacity < 100000.)
-		params.penaltyCapacity = std::min<double>(params.penaltyCapacity * params.ap.penaltyIncrease, 100000.);
-	else if (fractionFeasibleLoad > params.ap.targetFeasible + 0.05 && params.penaltyCapacity > 0.1)
-		params.penaltyCapacity = std::max<double>(params.penaltyCapacity * params.ap.penaltyDecrease, 0.1);
+	// Removed Capacity penalty management.
+	// Only managing duration penalties now.
 
 	// Setting some bounds [0.1,100000] to the penalty values for safety
 	double fractionFeasibleDuration = (double)std::count(listFeasibilityDuration.begin(), listFeasibilityDuration.end(), true) / (double)listFeasibilityDuration.size();
@@ -153,12 +155,12 @@ void Population::managePenalties()
 		params.penaltyDuration = std::max<double>(params.penaltyDuration * params.ap.penaltyDecrease, 0.1);
 
 	// Update the evaluations
+	// NOTE: Capacity excess removed from calculation
 	for (int i = 0; i < (int)infeasibleSubpop.size(); i++)
 		infeasibleSubpop[i]->eval.penalizedCost = infeasibleSubpop[i]->eval.distance
-		+ params.penaltyCapacity * infeasibleSubpop[i]->eval.capacityExcess
 		+ params.penaltyDuration * infeasibleSubpop[i]->eval.durationExcess;
 
-	// If needed, reorder the individuals in the infeasible subpopulation since the penalty values have changed (simple bubble sort for the sake of simplicity)
+	// If needed, reorder the individuals in the infeasible subpopulation since the penalty values have changed
 	for (int i = 0; i < (int)infeasibleSubpop.size(); i++)
 	{
 		for (int j = 0; j < (int)infeasibleSubpop.size() - i - 1; j++)
@@ -220,8 +222,9 @@ void Population::printState(int nbIter, int nbIterNoImprovement)
 		else std::printf(" | NO-INFEASIBLE");
 
 		std::printf(" | Div %.2f %.2f", getDiversity(feasibleSubpop), getDiversity(infeasibleSubpop));
-		std::printf(" | Feas %.2f %.2f", (double)std::count(listFeasibilityLoad.begin(), listFeasibilityLoad.end(), true) / (double)listFeasibilityLoad.size(), (double)std::count(listFeasibilityDuration.begin(), listFeasibilityDuration.end(), true) / (double)listFeasibilityDuration.size());
-		std::printf(" | Pen %.2f %.2f", params.penaltyCapacity, params.penaltyDuration);
+		// Removed Feas Load printing, keeping only Duration feasibility
+		std::printf(" | FeasDur %.2f", (double)std::count(listFeasibilityDuration.begin(), listFeasibilityDuration.end(), true) / (double)listFeasibilityDuration.size());
+		std::printf(" | PenDur %.2f", params.penaltyDuration);
 		std::cout << std::endl;
 	}
 }
@@ -296,7 +299,7 @@ void Population::exportCVRPLibFormat(const Individual & indiv, std::string fileN
 
 Population::Population(Params & params, Split & split, LocalSearch & localSearch) : params(params), split(split), localSearch(localSearch), bestSolutionRestart(params), bestSolutionOverall(params)
 {
-	listFeasibilityLoad = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
+	// Removed initialization of listFeasibilityLoad
 	listFeasibilityDuration = std::list<bool>(params.ap.nbIterPenaltyManagement, true);
 }
 
