@@ -1,59 +1,62 @@
-#include "Genetic.h"
-#include "commandline.h"
-#include "LocalSearch.h"
-#include "Split.h"
 #include "InstanceCVRPLIB.h"
+#include <cmath>
+#include <fstream>
+#include <iostream>
 
-using namespace std;
-
-int main(int argc, char *argv[])
+InstanceCVRPLIB::InstanceCVRPLIB(std::string pathToInstance)
 {
-	try
+	std::ifstream inputFile(pathToInstance);
+	if (inputFile.is_open())
 	{
-		// Reading the arguments
-		CommandLine commandline(argc, argv);
+		int totalNodes;
 
-		// Força 1 veículo (TD-TSP) se não passado por argumento
-		if (commandline.nbVeh == INT_MAX) commandline.nbVeh = 1;
-
-		if (commandline.verbose) print_algorithm_parameters(commandline.ap);
-
-		if (commandline.verbose) std::cout << "----- READING INSTANCE: " << commandline.pathInstance << std::endl;
-		
-		// Usa o novo Parser
-		InstanceCVRPLIB inst(commandline.pathInstance);
-
-		// Instancia Params com a nova assinatura (que definimos no passo 1)
-		// Note que passamos 'inst.timeCostsTD' como último argumento
-		// Passamos inst.dist_mtx[0] (tempo no intervalo 0) como matriz de distância estática base para heurísticas
-		Params params(
-			inst.x_coords,
-			inst.y_coords,
-			inst.timeCostsTD[0], // Usa intervalo 0 como referência "estática" para cálculos rápidos se necessário
-			inst.service_time,
-			inst.durationLimit,
-			commandline.nbVeh,
-			inst.isDurationConstraint,
-			commandline.verbose,
-			commandline.ap,
-			inst.nbTimeIntervals,
-			inst.intervalLength,
-			inst.timeCostsTD
-		);
-
-		// Running HGS
-		Genetic solver(params);
-		solver.run();
-		
-		// Exporting
-		if (solver.population.getBestFound() != NULL)
-		{
-			if (params.verbose) std::cout << "----- WRITING BEST SOLUTION IN : " << commandline.pathSolution << std::endl;
-			solver.population.exportCVRPLibFormat(*solver.population.getBestFound(),commandline.pathSolution);
-			solver.population.exportSearchProgress(commandline.pathSolution + ".PG.csv", commandline.pathInstance);
+		std::string line;
+		// Pula linhas de comentário se houver (começando com #)
+		while (inputFile.peek() == '#' || inputFile.peek() == '\n') {
+			std::getline(inputFile, line);
 		}
+
+		// 1. Number of nodes (including depot)
+		inputFile >> totalNodes;
+		nbClients = totalNodes - 1;
+
+		// 2. Number of time intervals |H|
+		inputFile >> nbTimeIntervals;
+
+		// 3. Length of each time interval T
+		inputFile >> intervalLength;
+
+		// Inicializa vetores
+		service_time.resize(totalNodes);
+		demands.resize(totalNodes, 0.0); // TSP não tem demanda, zeramos
+		x_coords.resize(totalNodes, 0.0); // TD-TSP sem coordenadas, zeramos
+		y_coords.resize(totalNodes, 0.0);
+		
+		// 4. List of service time s at each node
+		for (int i = 0; i < totalNodes; i++) {
+			inputFile >> service_time[i];
+		}
+
+		// 5. Travel time matrices (sequentially for each interval h)
+		// timeCostsTD[h][i][j]
+		timeCostsTD.resize(nbTimeIntervals, 
+			std::vector<std::vector<double>>(totalNodes, std::vector<double>(totalNodes)));
+
+		for (int h = 0; h < nbTimeIntervals; h++) {
+			for (int i = 0; i < totalNodes; i++) {
+				for (int j = 0; j < totalNodes; j++) {
+					inputFile >> timeCostsTD[h][i][j];
+				}
+			}
+		}
+
+		// Configurações Padrão
+		durationLimit = 1.e30; 
+		vehicleCapacity = 1.e30; 
+		isDurationConstraint = false;
 	}
-	catch (const string& e) { std::cout << "EXCEPTION | " << e << std::endl; }
-	catch (const std::exception& e) { std::cout << "EXCEPTION | " << e.what() << std::endl; }
-	return 0;
+	else
+	{
+		throw std::string("Impossible to open instance file: " + pathToInstance);
+	}
 }

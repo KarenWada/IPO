@@ -1,13 +1,13 @@
 #include "Params.h"
 
 // The universal constructor for both executable and shared library
-// When the executable is run from the commandline,
-// it will first generate an CVRPLIB instance from .vrp file, then supply necessary information.
 Params::Params(
 	const std::vector<double>& x_coords,
 	const std::vector<double>& y_coords,
 	const std::vector<std::vector<double>>& dist_mtx,
 	const std::vector<double>& service_time,
+	const std::vector<double>& demands,
+	double vehicleCapacity,
 	double durationLimit,
 	int nbVeh,
 	bool isDurationConstraint,
@@ -18,9 +18,17 @@ Params::Params(
 	const std::vector< std::vector< std::vector< double > > >& timeCostsTD_in
 
 )
-	: ap(ap), isDurationConstraint(isDurationConstraint), nbVehicles(1), durationLimit(durationLimit),
-	  timeCost(dist_mtx), verbose(verbose),
-      nbTimeIntervals(nbTimeIntervals_in), intervalLength(intervalLength_in), timeCostsTD(timeCostsTD_in)
+	: ap(ap), 
+	  isDurationConstraint(isDurationConstraint), 
+	  nbVehicles(1), // Force 1 vehicle for TSP
+	  durationLimit(durationLimit),
+	  vehicleCapacity(vehicleCapacity),
+	  totalDemand(0.),
+	  nbTimeIntervals(nbTimeIntervals_in), 
+	  intervalLength(intervalLength_in), 
+	  timeCostsTD(timeCostsTD_in),
+	  timeCost(dist_mtx), 
+	  verbose(verbose)
 {
 	// This marks the starting time of the algorithm
 	startTime = clock();
@@ -36,7 +44,6 @@ Params::Params(
 	cli = std::vector<Client>(nbClients + 1);
 	for (int i = 0; i <= nbClients; i++)
 	{
-		// If useSwapStar==false, x_coords and y_coords may be empty.
 		if (areCoordinatesProvided)
 		{
 			cli[i].coordX = x_coords[i];
@@ -52,6 +59,8 @@ Params::Params(
 		}
 
 		cli[i].serviceDuration = service_time[i];
+		cli[i].demand = demands[i];
+		totalDemand += cli[i].demand;
 	}
 
 	// Calculation of the maximum distance
@@ -84,7 +93,7 @@ Params::Params(
 		for (int x : setCorrelatedVertices[i])
 			correlatedVertices[i].push_back(x);
 
-	// Safeguards to avoid possible numerical instability in case of instances containing arbitrarily small or large numerical values
+	// Safeguards to avoid possible numerical instability
 	if (maxDist < 0.1 || maxDist > 100000)
 		throw std::string(
 			"The distances are of very small or large scale. This could impact numerical stability. Please rescale the dataset and run again.");
@@ -101,13 +110,12 @@ double Params::getTDCost(int i, int j, double timeDeparture) const
     // Lógica do Link Travel Model (LTM)
     
     // 1. Determinar o intervalo de tempo h de partida (indexação de tempo discreto)
-    // Usamos floor para garantir que o tempo de partida caia no intervalo correto.
     int h = (int)std::floor(timeDeparture / intervalLength);
     
-    // 2. Limitar h ao número máximo de intervalos (o último intervalo é o default se o tempo exceder o limite)
-    h = std::min(h, nbTimeIntervals - 1); 
+    // 2. Limitar h ao número máximo de intervalos
+    if (h >= nbTimeIntervals) h = nbTimeIntervals - 1;
+    if (h < 0) h = 0; // Segurança para tempos negativos
 
     // 3. Retorna o custo do arco (i, j) para aquele intervalo h.
     return timeCostsTD[h][i][j];
 }
-

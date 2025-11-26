@@ -74,7 +74,29 @@ extern "C" Solution *solve_cvrp(
 			}
 		}
 
-		Params params(x_coords,y_coords,distance_matrix,service_time,demands,vehicleCapacity,durationLimit,max_nbVeh,isDurationConstraint,verbose,*ap);
+		// Compatibilidade com TD-TSP:
+		// Cria uma estrutura de tempo dummy (1 intervalo, duração infinita)
+		// e usa a distance_matrix estática como custo para esse intervalo.
+		int nbTimeIntervals = 1;
+		double intervalLength = 1.e30;
+		std::vector<std::vector<std::vector<double>>> timeCostsTD(1, distance_matrix);
+
+		Params params(
+			x_coords,
+			y_coords,
+			distance_matrix,
+			service_time,
+			demands,
+			vehicleCapacity,
+			durationLimit,
+			max_nbVeh,
+			isDurationConstraint,
+			verbose,
+			*ap,
+			nbTimeIntervals, // Novo argumento
+			intervalLength,  // Novo argumento
+			timeCostsTD      // Novo argumento
+		);
 
 		// Running HGS and returning the result
 		Genetic solver(params);
@@ -112,7 +134,28 @@ extern "C" Solution *solve_cvrp_dist_mtx(
 			}
 		}
 
-		Params params(x_coords,y_coords,distance_matrix,service_time,demands,vehicleCapacity,durationLimit,max_nbVeh,isDurationConstraint,verbose,*ap);
+		// Compatibilidade com TD-TSP:
+		// Cria uma estrutura de tempo dummy (1 intervalo, duração infinita)
+		int nbTimeIntervals = 1;
+		double intervalLength = 1.e30;
+		std::vector<std::vector<std::vector<double>>> timeCostsTD(1, distance_matrix);
+
+		Params params(
+			x_coords,
+			y_coords,
+			distance_matrix,
+			service_time,
+			demands,
+			vehicleCapacity,
+			durationLimit,
+			max_nbVeh,
+			isDurationConstraint,
+			verbose,
+			*ap,
+			nbTimeIntervals, // Novo argumento
+			intervalLength,  // Novo argumento
+			timeCostsTD      // Novo argumento
+		);
 		
 		// Running HGS and returning the result
 		Genetic solver(params);

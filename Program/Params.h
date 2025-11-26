@@ -47,6 +47,7 @@ struct Client
 	double coordY;			// Coordinate Y
 	double serviceDuration; // Service duration
 	int polarAngle;			// Polar angle of the client around the depot, measured in degrees and truncated for convenience
+	double demand;          // Demand (Ignored in TSP but kept for compatibility)
 };
 
 class Params
@@ -59,6 +60,7 @@ public:
 
 	/* ADAPTIVE PENALTY COEFFICIENTS */
 	double penaltyDuration;				// Penalty for one unit of duration excess (adapted through the search)
+    // penaltyCapacity removed as it is not used in TSP
 
 	/* START TIME OF THE ALGORITHM */
 	clock_t startTime;                  // Start time of the optimization (set when Params is constructed)
@@ -72,8 +74,16 @@ public:
 	int nbVehicles ;										// Number of vehicles
 	double durationLimit;
 	double maxDist;											// Maximum distance between two clients
+	double totalDemand;                                     // Total demand (kept for compatibility)
+	double vehicleCapacity;                                 // Vehicle capacity (kept for compatibility)
+	
+	/* TD-TSP SPECIFIC DATA */
+	int nbTimeIntervals;                                    // Number of time intervals |H|
+	double intervalLength;                                  // Length of each time interval T
+	std::vector<std::vector<std::vector<double>>> timeCostsTD; // 3D Matrix [Interval][From][To]
+
 	std::vector< Client > cli ;								// Vector containing information on each client
-	const std::vector< std::vector< double > >& timeCost;	// Distance matrix
+	const std::vector< std::vector< double > >& timeCost;	// Static Distance matrix (used for heuristics)
 	std::vector< std::vector< int > > correlatedVertices;	// Neighborhood restrictions: For each client, list of nearby customers
 	bool areCoordinatesProvided;                            // Check if valid coordinates are provided
 
@@ -82,6 +92,8 @@ public:
 		const std::vector<double>& y_coords,
 		const std::vector<std::vector<double>>& dist_mtx,
 		const std::vector<double>& service_time,
+		const std::vector<double>& demands,
+		double vehicleCapacity,
 		double durationLimit,
 		int nbVeh,
 		bool isDurationConstraint,
@@ -91,7 +103,7 @@ public:
         double intervalLength_in,
         const std::vector<std::vector<std::vector<double>>>& timeCostsTD_in);
 		
+	// Function to get time-dependent cost
 	double getTDCost(int i, int j, double timeDeparture) const;
 };
 #endif
-

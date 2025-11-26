@@ -23,22 +23,22 @@ int main(int argc, char *argv[])
 		// Usa o novo Parser
 		InstanceCVRPLIB inst(commandline.pathInstance);
 
-		// Instancia Params com a nova assinatura (que definimos no passo 1)
-		// Note que passamos 'inst.timeCostsTD' como último argumento
-		// Passamos inst.dist_mtx[0] (tempo no intervalo 0) como matriz de distância estática base para heurísticas
+		// Instancia Params com a nova assinatura (14 argumentos)
 		Params params(
 			inst.x_coords,
 			inst.y_coords,
-			inst.timeCostsTD[0], // Usa intervalo 0 como referência "estática" para cálculos rápidos se necessário
+			inst.timeCostsTD[0], // Usa intervalo 0 como referência "estática" para dist_mtx
 			inst.service_time,
+			inst.demands,        // Novo argumento: Demands
+			inst.vehicleCapacity,
 			inst.durationLimit,
 			commandline.nbVeh,
 			inst.isDurationConstraint,
 			commandline.verbose,
 			commandline.ap,
-			inst.nbTimeIntervals,
-			inst.intervalLength,
-			inst.timeCostsTD
+			inst.nbTimeIntervals, // Novo argumento: TD Info
+			inst.intervalLength,  // Novo argumento: TD Info
+			inst.timeCostsTD      // Novo argumento: TD Matrix
 		);
 
 		// Running HGS

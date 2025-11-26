@@ -2,8 +2,6 @@
 #define INSTANCECVRPLIB_H
 #include <string>
 #include <vector>
-#include <fstream>
-#include <iostream>
 
 class InstanceCVRPLIB
 {
@@ -14,19 +12,20 @@ public:
 
 	// Dados TD-TSP
 	std::vector<double> service_time;
-	int nbClients;                  // Número de clientes (excluindo depósito)
-	int nbTimeIntervals;            // |H|
-	double intervalLength;          // T
+	std::vector<double> demands;    // Adicionado para compatibilidade com Params
+	int nbClients;                  
+	int nbTimeIntervals;            
+	double intervalLength;          
 	
 	// Matriz 3D: [Intervalo][Origem][Destino]
 	std::vector<std::vector<std::vector<double>>> timeCostsTD; 
 
-	// Constraints (Mantidos para compatibilidade, mas Capacity será ignorado)
+	// Constraints
 	double durationLimit = 1.e30;
 	double vehicleCapacity = 1.e30; 
 	bool isDurationConstraint = false;
 
-	// Construtor
+	// Construtor Simplificado
 	InstanceCVRPLIB(std::string pathToInstance);
 };
 
