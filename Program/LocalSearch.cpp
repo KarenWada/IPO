@@ -9,6 +9,22 @@ void LocalSearch::run(Individual & indiv, double penaltyCapacityLS, double penal
 	std::shuffle(orderNodes.begin(), orderNodes.end(), params.ran);
 
 	searchCompleted = false;
+
+	
+    // ADICIONE ESTE CONTADOR
+    int debugCount = 0;
+
+	for (loopID = 0; !searchCompleted; loopID++)
+	{
+        // ADICIONE ESTA VERIFICAÇÃO DE SEGURANÇA
+        debugCount++;
+        if (debugCount > 1000) {
+            std::cout << "ALERTA: Local Search em loop infinito?" << std::endl;
+            break; }
+		searchCompleted = true;
+    }
+
+		
 	
 	// Main LS Loop
 	// We simplify the logic to standard Hill Climbing / Descent
