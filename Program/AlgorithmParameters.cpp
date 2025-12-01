@@ -25,6 +25,8 @@ struct AlgorithmParameters default_algorithm_parameters() {
 	ap.nbIterTraces = 500;
 	ap.timeLimit = 0;
 	ap.useSwapStar = 1;
+	
+	ap.targetTravelTime = 0.0; // Padrão: 0 (desativado)
 
 	return ap;
 }
@@ -46,5 +48,9 @@ void print_algorithm_parameters(const AlgorithmParameters & ap)
 	std::cout << "---- nbIterTraces            is set to " << ap.nbIterTraces << std::endl;
 	std::cout << "---- timeLimit               is set to " << ap.timeLimit << std::endl;
 	std::cout << "---- useSwapStar             is set to " << ap.useSwapStar << std::endl;
+	
+	if (ap.targetTravelTime > 0.1)
+		std::cout << "---- targetTravelTime        is set to " << ap.targetTravelTime << std::endl;
+
 	std::cout << "==================================================" << std::endl;
 }

@@ -8,21 +8,40 @@ void Genetic::run()
 	int nbIter;
 	int nbIterNonProd = 1;
 	if (params.verbose) std::cout << "----- STARTING GENETIC ALGORITHM" << std::endl;
-	for (nbIter = 0 ; nbIterNonProd <= params.ap.nbIter && (params.ap.timeLimit == 0 || (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC < params.ap.timeLimit) ; nbIter++)
+	
+	// Condição de parada: número de iterações sem melhoria ou tempo limite
+	for (nbIter = 0 ; 
+		 nbIterNonProd <= params.ap.nbIter && 
+		 (params.ap.timeLimit == 0 || (double)(clock()-params.startTime)/(double)CLOCKS_PER_SEC < params.ap.timeLimit) ; 
+		 nbIter++)
 	{	
+		// --- NOVO: VERIFICAÇÃO DE ALVO (TARGET) ---
+		// Se definimos um alvo e a melhor solução viável encontrada já é menor ou igual a ele, paramos!
+		if (params.ap.targetTravelTime > 0.1)
+		{
+			const Individual* best = population.getBestFound();
+			// Usamos uma pequena tolerância (+0.001) para erros de ponto flutuante
+			if (best && best->eval.isFeasible && best->eval.travelTime <= params.ap.targetTravelTime + 0.001) 
+			{
+				if (params.verbose) std::cout << "----- TARGET REACHED: " << best->eval.travelTime << " <= " << params.ap.targetTravelTime << std::endl;
+				break; // Sai do loop imediatamente
+			}
+		}
+		// ------------------------------------------
+
 		/* SELECTION AND CROSSOVER */
 		crossoverOX(offspring, population.getBinaryTournament(),population.getBinaryTournament());
 
 		/* LOCAL SEARCH */
-		// We pass 0.0 for penaltyCapacity since we are solving a TSP (Capacity irrelevant)
+		// Passamos 0.0 para capacidade (irrelevante para TSP)
 		localSearch.run(offspring, 0.0, params.penaltyDuration);
 		
 		bool isNewBest = population.addIndividual(offspring,true);
 		
-		// Repair logic based only on duration/time feasibility
-		if (!offspring.eval.isFeasible && params.ran()%2 == 0) // Repair half of the solutions in case of infeasibility
+		// Lógica de reparo baseada apenas na viabilidade de tempo/duração
+		if (!offspring.eval.isFeasible && params.ran()%2 == 0) // Repara metade das soluções inviáveis
 		{
-			// Increased penalty for duration to force feasibility
+			// Aumenta penalidade para forçar viabilidade
 			localSearch.run(offspring, 0.0, params.penaltyDuration*10.);
 			if (offspring.eval.isFeasible) isNewBest = (population.addIndividual(offspring,false) || isNewBest);
 		}
@@ -35,7 +54,7 @@ void Genetic::run()
 		if (nbIter % params.ap.nbIterPenaltyManagement == 0) population.managePenalties();
 		if (nbIter % params.ap.nbIterTraces == 0) population.printState(nbIter, nbIterNonProd);
 
-		/* FOR TESTS INVOLVING SUCCESSIVE RUNS UNTIL A TIME LIMIT: WE RESET THE ALGORITHM/POPULATION EACH TIME maxIterNonProd IS ATTAINED*/
+		/* RESTART (Reinício da população para escapar de ótimos locais) */
 		if (params.ap.timeLimit != 0 && nbIterNonProd == params.ap.nbIter)
 		{
 			population.restart();

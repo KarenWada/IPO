@@ -85,6 +85,8 @@ public:
 					ap.penaltyIncrease = atof(argv[i+1]);
 				else if (std::string(argv[i]) == "-penaltyDecrease")
 					ap.penaltyDecrease = atof(argv[i+1]);
+				else if (std::string(argv[i]) == "-target") // NOVO: Leitura do target
+					ap.targetTravelTime = atof(argv[i+1]);
 				else
 				{
 					std::cout << "----- ARGUMENT NOT RECOGNIZED: " << std::string(argv[i]) << std::endl;
@@ -106,6 +108,7 @@ public:
 		std::cout << "[-veh <int>] sets a prescribed fleet size. Otherwise a reasonable UB on the the fleet size is calculated                        " << std::endl;
 		std::cout << "[-round <bool>] rounding the distance to the nearest integer or not. It can be 0 (not rounding) or 1 (rounding). Defaults to 1. " << std::endl;
 		std::cout << "[-log <bool>] sets the verbose level of the algorithm log. It can be 0 or 1. Defaults to 1.                                     " << std::endl;
+		std::cout << "[-target <double>] Sets a target Travel Time. The algorithm stops immediately if a solution <= target is found                  " << std::endl;
 		std::cout << std::endl;
 		std::cout << "Additional Arguments:                                                                                                           " << std::endl;
 		std::cout << "[-nbIterTraces <int>] Number of iterations between traces display during HGS execution. Defaults to 500                         " << std::endl;
