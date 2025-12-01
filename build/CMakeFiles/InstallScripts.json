@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/wada/IPO/HGS-CVRP/IPO/build/cmake_install.cmake",
+		"/home/wada/IPO/HGS-CVRP/IPO/build/Test/Test-c/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

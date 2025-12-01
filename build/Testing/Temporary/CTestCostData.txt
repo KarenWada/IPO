@@ -1,0 +1,9 @@
+bin_test_X-n101-k25 0 0
+bin_test_X-n106-k14 0 0
+bin_test_CMT6 0 0
+bin_test_CMT7 0 0
+---
+bin_test_X-n101-k25
+bin_test_X-n106-k14
+bin_test_CMT6
+bin_test_CMT7

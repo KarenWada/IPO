@@ -1,0 +1,159 @@
+Start testing: Nov 25 21:53 -03
+----------------------------------------------------------
+1/5 Testing: bin_test_X-n101-k25
+1/5 Test: bin_test_X-n101-k25
+Command: "/snap/cmake/1499/bin/cmake" "-DINSTANCE=X-n101-k25" "-DCOST=27591" "-DROUND=1" "-P" "/home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake"
+Directory: /home/wada/IPO/HGS-CVRP/IPO/build
+"bin_test_X-n101-k25" start time: Nov 25 21:53 -03
+Output:
+----------------------------------------------------------
+=========== Algorithm Parameters =================
+---- nbGranular              is set to 20
+---- mu                      is set to 25
+---- lambda                  is set to 40
+---- nbElite                 is set to 4
+---- nbClose                 is set to 5
+---- nbIterPenaltyManagement is set to 100
+---- targetFeasible          is set to 0.2
+---- penaltyDecrease         is set to 0.85
+---- penaltyIncrease         is set to 1.2
+---- seed                    is set to 1
+---- nbIter                  is set to 20000
+---- nbIterTraces            is set to 500
+---- timeLimit               is set to 0
+---- useSwapStar             is set to 1
+==================================================
+----- READING INSTANCE: ../Instances/CVRP/X-n101-k25.vrp
+EXCEPTION | Impossible to open instance file: ../Instances/CVRP/X-n101-k25.vrp
+0
+CMake Error at /home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake:14 (file):
+  file STRINGS file "/home/wada/IPO/HGS-CVRP/IPO/build/mySolution.sol" cannot
+  be read.
+
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Failed.
+"bin_test_X-n101-k25" end time: Nov 25 21:53 -03
+"bin_test_X-n101-k25" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/5 Testing: bin_test_X-n106-k14
+2/5 Test: bin_test_X-n106-k14
+Command: "/snap/cmake/1499/bin/cmake" "-DINSTANCE=X-n110-k13" "-DCOST=14971" "-DROUND=1" "-P" "/home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake"
+Directory: /home/wada/IPO/HGS-CVRP/IPO/build
+"bin_test_X-n106-k14" start time: Nov 25 21:53 -03
+Output:
+----------------------------------------------------------
+=========== Algorithm Parameters =================
+---- nbGranular              is set to 20
+---- mu                      is set to 25
+---- lambda                  is set to 40
+---- nbElite                 is set to 4
+---- nbClose                 is set to 5
+---- nbIterPenaltyManagement is set to 100
+---- targetFeasible          is set to 0.2
+---- penaltyDecrease         is set to 0.85
+---- penaltyIncrease         is set to 1.2
+---- seed                    is set to 1
+---- nbIter                  is set to 20000
+---- nbIterTraces            is set to 500
+---- timeLimit               is set to 0
+---- useSwapStar             is set to 1
+==================================================
+----- READING INSTANCE: ../Instances/CVRP/X-n110-k13.vrp
+EXCEPTION | Impossible to open instance file: ../Instances/CVRP/X-n110-k13.vrp
+0
+CMake Error at /home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake:14 (file):
+  file STRINGS file "/home/wada/IPO/HGS-CVRP/IPO/build/mySolution.sol" cannot
+  be read.
+
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Failed.
+"bin_test_X-n106-k14" end time: Nov 25 21:53 -03
+"bin_test_X-n106-k14" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/5 Testing: bin_test_CMT6
+3/5 Test: bin_test_CMT6
+Command: "/snap/cmake/1499/bin/cmake" "-DINSTANCE=CMT6" "-DCOST=555.43" "-DROUND=0" "-P" "/home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake"
+Directory: /home/wada/IPO/HGS-CVRP/IPO/build
+"bin_test_CMT6" start time: Nov 25 21:53 -03
+Output:
+----------------------------------------------------------
+=========== Algorithm Parameters =================
+---- nbGranular              is set to 20
+---- mu                      is set to 25
+---- lambda                  is set to 40
+---- nbElite                 is set to 4
+---- nbClose                 is set to 5
+---- nbIterPenaltyManagement is set to 100
+---- targetFeasible          is set to 0.2
+---- penaltyDecrease         is set to 0.85
+---- penaltyIncrease         is set to 1.2
+---- seed                    is set to 1
+---- nbIter                  is set to 20000
+---- nbIterTraces            is set to 500
+---- timeLimit               is set to 0
+---- useSwapStar             is set to 1
+==================================================
+----- READING INSTANCE: ../Instances/CVRP/CMT6.vrp
+EXCEPTION | Impossible to open instance file: ../Instances/CVRP/CMT6.vrp
+0
+CMake Error at /home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake:14 (file):
+  file STRINGS file "/home/wada/IPO/HGS-CVRP/IPO/build/mySolution.sol" cannot
+  be read.
+
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Failed.
+"bin_test_CMT6" end time: Nov 25 21:53 -03
+"bin_test_CMT6" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/5 Testing: bin_test_CMT7
+4/5 Test: bin_test_CMT7
+Command: "/snap/cmake/1499/bin/cmake" "-DINSTANCE=CMT7" "-DCOST=909.675" "-DROUND=0" "-P" "/home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake"
+Directory: /home/wada/IPO/HGS-CVRP/IPO/build
+"bin_test_CMT7" start time: Nov 25 21:53 -03
+Output:
+----------------------------------------------------------
+=========== Algorithm Parameters =================
+---- nbGranular              is set to 20
+---- mu                      is set to 25
+---- lambda                  is set to 40
+---- nbElite                 is set to 4
+---- nbClose                 is set to 5
+---- nbIterPenaltyManagement is set to 100
+---- targetFeasible          is set to 0.2
+---- penaltyDecrease         is set to 0.85
+---- penaltyIncrease         is set to 1.2
+---- seed                    is set to 1
+---- nbIter                  is set to 20000
+---- nbIterTraces            is set to 500
+---- timeLimit               is set to 0
+---- useSwapStar             is set to 1
+==================================================
+----- READING INSTANCE: ../Instances/CVRP/CMT7.vrp
+EXCEPTION | Impossible to open instance file: ../Instances/CVRP/CMT7.vrp
+0
+CMake Error at /home/wada/IPO/HGS-CVRP/IPO/Test/TestExecutable.cmake:14 (file):
+  file STRINGS file "/home/wada/IPO/HGS-CVRP/IPO/build/mySolution.sol" cannot
+  be read.
+
+
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Failed.
+"bin_test_CMT7" end time: Nov 25 21:53 -03
+"bin_test_CMT7" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Nov 25 21:53 -03
